@@ -4,7 +4,7 @@
   >
     <!-- Form Page -->
 
-    <form action="" @click="submitForm">
+    <form action="" enctype="multipart/form-data" @submit.prevent="submitForm">
       <div class="bg-white rounded-lg shadow p-10">
         <!-- Page Header  -->
 
@@ -182,10 +182,26 @@
                       <span>Upload a file</span>
                       <input
                         type="file"
-                        class="sr-only"
                         id="file-upload"
+                        accept="image/*"
+                        class="sr-only"
                         @change="uploadImage"
                       />
+
+                      <!-- <input
+                        type="file"
+                        class="sr-only"
+                        id="file-upload"
+                        accept="image/*"
+                        multiple
+                        @change="
+                          filesChange(
+                            $event.target.formData.car_type,
+                            $event.target.files
+                          )
+                          formData.car_photo = $event.target.files.length
+                        "
+                      /> -->
                     </label>
 
                     <p class="pl-1">or drag and drop</p>
@@ -256,7 +272,7 @@
         <!-- Submit form Button  -->
         <div class="flex justify-end mt-6">
           <button
-            type="button"
+            type="submit"
             class="inline-flex sm:w-auto w-full justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Save
@@ -347,7 +363,7 @@
                     <td
                       class="px-6 py-4 whitespace-nowrap text-left text-sm text-gray-500"
                     >
-                      {{ formData.car_photo }}
+                      <img :src="previewImage" alt="" class="w-20 h-20" />
                     </td>
                     <td
                       class="px-6 py-4 whitespace-nowrap text-left text-sm text-gray-500"
@@ -380,6 +396,7 @@ let formData = reactive({
   car_photo: '',
   status: '',
 })
+const previewImage = ref('')
 
 // Data Variable
 
@@ -419,8 +436,16 @@ const v$ = useVuelidate(rules, formData)
 
 // Methods
 
-function uploadImage(e) {
-  formData.car_photo = e.target.files[0]
+function uploadImage(event) {
+  const input = event.target
+  if (input.files) {
+    let reader = new FileReader()
+    reader.onload = (e) => {
+      previewImage.value = e.target.result
+    }
+    formData.car_photo = input.files[0]
+    reader.readAsDataURL(input.files[0])
+  }
 }
 
 function submitForm() {
@@ -434,8 +459,9 @@ function submitForm() {
     ...formData,
   }
   console.log(data)
-
-  alert('Form Submit Successfully!')
+  if (data) {
+    alert('Form Submit Successfully!')
+  }
 
   isSaving.value = true
 }
